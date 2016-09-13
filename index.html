@@ -1,0 +1,178 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!--Let browser know website is optimized for mobile-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!--Import Google Icon Font-->
+  <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Fonts Awesome -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" media="screen" title="no title" charset="utf-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <!-- Compiled and minified JavaScript -->
+
+  <title>Weather</title>
+</head>
+<body>
+
+  <!-- Codigo Css -->
+  <style>
+  h1 {
+    padding-left: 29%;
+    color: white;
+  }
+  .row {
+    margin-top: 5%;
+    margin-left: 15%;
+
+  }
+  span{
+    color: white;
+    font-size: 20px;
+  }
+
+  #divWeather {
+    width: 90%;
+  }
+  #loading {
+    margin-left: 45%;
+  }
+
+
+  </style>
+
+<!-- Codigo HTML -->
+<h1>Weather App</h1>
+<div id="loading">
+  <div class="preloader-wrapper big active">
+    <div class="spinner-layer spinner-blue-only">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="divWeather" class="row card-content white-text"></div>
+
+
+
+
+</body>
+<!--  Java script Codigo -->
+
+<script   src="https://code.jquery.com/jquery-3.0.0.min.js"
+          integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="
+          crossorigin="anonymous">
+</script>
+<!--  JQuery Materialize-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+
+  <script type="text/javascript" >
+  $('document').ready(function(){
+
+    // Obtener la posicion del usuario
+    navigator.geolocation.getCurrentPosition(function(position) {
+      sendCoords(position.coords.latitude, position.coords.longitude);
+    })
+
+
+    // Manipular el resultado de la consulta JSON
+    const resultHandler = (result)=>{
+      const {name, sys, weather, wind, main} = result;
+      const city = name;
+      const windSpeed = Math.round(wind.speed);
+      const dirWind = wind.deg;
+      const tempKel = Math.round(main.temp);
+      const tempCel = (tempKel - 273);
+      const tempFah = Math.round((tempCel *9)/5 +32);
+      const sky = weather[0].description;
+      const idCondition = weather[0].id
+      const icon = weather[0].icon;
+      const date = new Date()
+      const day = date.getDate()
+      const month = date.getDay()
+      const year = date.getFullYear()
+
+      // Definir mi imagen de fondo segun el tiempo
+      const backgroundSelector = (idCondition) => {
+        console.log("id: "+ idCondition);
+        switch (idCondition) {
+          // Thunderstorm
+          case (idCondition >= 200 && idCondition <=232):
+            return $('body').css('background-image', 'url("/img/dia-lluvia.jpg")');
+            break;
+            // Drizzle
+          case (idCondition >= 300 && idCondition <=321):
+            return $('body').css('background-image', 'url("/img/background-clear.jpg")');
+            break;
+            // Rain
+          case (idCondition >= 500 && idCondition <=531):
+            return $('body').css('background-image', 'url("/img/dia-nubes-rotas.jpg")');
+            break;
+            // Snow
+          case (idCondition >= 600 && idCondition <=622):
+            return $('body').css('background-image', 'url("/img/dia-nubes-rotas.jpg")');
+            break;
+            // Clouds
+          case (idCondition >= 801 && idCondition <=804):
+            return $('body').css('background-image', 'url("/img/dia-nubes-rotas.jpg")');
+            break;
+            // Extreme
+          case (idCondition >= 900 && idCondition <=906):
+            return $('body').css('background-image', 'url("/img/dia-nubes-rotas.jpg")');
+            break;
+            // Clear
+          default:
+            return $('body').css('background-image', 'url("/img/background-clear.jpg")');
+          }
+        }
+        
+      backgroundSelector(idCondition);
+      $('<div class="row" />').html(`
+        <div class="col s6">
+          <div class="col s6"><span class="flow-text">${city.toUpperCase()}</span></div>
+          <div class="col s1">
+            <span class="flow-text">
+              <img width='50px'src="http://openweathermap.org/img/w/${icon}.png" alt="icono">
+            </span>
+          </div>
+          <div class="col s2 offset-s1"><a id="Cel" href="#"><span>${tempCel +" ºC"}</span></a></div>
+          <div class="col s2 offset-s1"><a id="Fah" href="#"><span>${tempFah +" ºF"}</span></a></div>
+          <div class="col s6"><span class="flow-text">${month + "." + day + "." + year}</span></div>
+          <div class="col s6"><span class="flow-text">${sky}</span></div>
+          </div>`).appendTo($('#divWeather'))
+
+// Ocultar el div de tempFah
+$('#Fah').hide();
+$('#Cel').on("click", function () {
+  $('#Cel').hide();
+  $('#Fah').show();
+})
+$('#Fah').on("click", function () {
+  $('#Fah').hide();
+  $('#Cel').show();
+})
+}
+
+// Enviar Posicion
+    const sendCoords = (lat, lon) =>{
+      const apikey = "e7c734c6ffe5acd931c30404f702729f";
+      const url = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apikey}`;
+      $.getJSON({
+        url:url,
+        success:result=>resultHandler(result)
+      }).done($('#loading').hide())
+    }
+
+
+  });
+
+    </script>
+
+</body>
+</html>
